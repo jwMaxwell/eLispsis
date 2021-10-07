@@ -1,15 +1,12 @@
 const { exit } = require("process");
 const prompt = require("prompt-sync")();
 const fs = require("fs");
-console.error = (x) => console.log('\x1b[1m\x1b[31m' + x + '\x1b[0m');
+console.error = (x) => {console.log('\x1b[1m\x1b[31m' + x + '\x1b[0m'); exit();};
 
 const tokenize = (str) =>
-    `${str.trim()}`
+    `( ${str.trim()} )`
       .replaceAll(/;(.*?)\n/g, "")
-      .replaceAll("(", " ( ")
-      .replaceAll(")", " ) ")
-      .replaceAll("'", " ' ")
-      .match(/[^\s"]+|"([^"]*)"/g)
+      .match(/\(|\)|'|[^\s()]+/g)
 
 const parse = (tokens, ast=[]) => {
     const t = tokens.shift();
@@ -25,84 +22,91 @@ const parse = (tokens, ast=[]) => {
         return parse(tokens, [...ast, t]);
 }
 
-const parseQuote = (node) =>
-    Array.isArray(node)
-      ? node.reduce((quote, rest) =>
-              quote[quote.length - 1] === "'"
-                ? [...quote.slice(0, -1), ['quote', rest]]
-                : [...quote, rest],
-            []).map(parseQuote)
-      : node;
-
-const isAtom = (val) => !Array.isArray(val);// || !val.length();
-
-const find = (ctx, value) => {
-    if (value in ctx.scope)
-        return ctx.scope[value];
-    else if (ctx.parent === undefined) {
-        console.error(`Expression "${value}" not found`);
-        exit();
+const isAtom = (expr) => !Array.isArray(expr) || !expr.length;
+const parseQuote = (ast) => { //TODO:
+    if (isAtom(ast)) return ast;
+    const result = [];
+    for (const n of ast) {
+        if (result[result.length - 1] === "'")
+            result.splice(result.length - 1, 1, ['quote', parseQuote(n)]);
+        else result.push(parseQuote(n));
     }
-    return find(ctx.parent, value);
-}
-
-const evaluate = (ast, ctx) => {
-    console.log(ctx);
-    if (isAtom(ast) && find(ctx, ast)) {
-        return find(ctx, ast);
-    }
-    else if (isAtom(ast)) {
-        return ast;
-    }
-    else {
-        const func = evaluate(ast[0], { scope: {}, parent: ctx });
-        if (!(func instanceof Function)) {
-            console.error(`Expression "${func}" not found`);
-            exit();
-        }
-        return func(ast.slice(1), { scope: {}, parent: ctx });
-    }
-}
-
-const core = {
-    'scope': {
-        'quote': ([x]) => x,
-        'atom': ([x], ctx) => isAtom(evaluate(x, ctx)) ? 't' : [],
-        'head': ([x], ctx) => evaluate(x, ctx)[0],
-        'tail': ([x], ctx) => evaluate(x, ctx).slice(1),
-        'push': ([x, y], ctx) => [evaluate(x, ctx), ...evaluate(y, ctx)],
-        'if': ([x, y, z], ctx) => evaluate(x, ctx) === 't'
-            ? evaluate(y, ctx)
-            : evaluate(z, ctx),
-        'var': ([name, value], ctx) => {
-            ctx.parent[name] = evaluate(value)
-            return [];
-        },
-        'expr': ([args, body], ctx) => (x) => {
-            x = Object.values(Object(x));
-            const exprCtx = ctx;
-            for (let i = 0; i < args.length; ++i)
-                exprCtx[args[i]] = evaluate(x[i]);
-            return evaluate(body, exprCtx);
-        },
-        'func': ([name, args, body], ctx) => {
-            // console.log(`funcname`);
-            // console.log(name);
-            ctx.parent[name] = ctx.expr([args, body], ctx);
-            // console.log(ctx[name]);
-            return [];
-        },
-    }
+    return result;
 };
 
-const execute = (expressions) =>
-      expressions.reduce((ctx, expr) => evaluate(expr, ctx), { scope: {}, parent: core });
+const evaluate = (ast, ctx) => { 
+  if (isAtom(ast) && !isNaN(parseFloat(ast)))
+    return parseFloat(ast);
+  if (isAtom(ast)) {
+    for (const [key, val] of ctx)
+      if (key === ast) return val;
+    console.error(`${ast} is not defined`);
+  } else {
+    const func = evaluate(ast[0], ctx);
+    if (func instanceof Function) return func(ast.slice(1), ctx);
+    console.error(`Not a function: ${ast[0]}`);
+  }
+};
 
-const main = (() => {
-    const input = prompt('lisp > ');
+const core = [
+  ['quote', ([a]) => a],
+  ['atom', ([a], ctx) => isAtom(evaluate(a, ctx)) ? 't' : []],
+  [
+    'eq',
+    ([a, b], ctx) => {
+      a = evaluate(a, ctx);
+      b = evaluate(b, ctx);
+      return (a === b || (!a.length && !b.length)) ? 't' : [];
+    },
+  ],
+  ['car', ([a], ctx) => evaluate(a, ctx)[0]],
+  ['cdr', ([a], ctx) => evaluate(a, ctx).slice(1)],
+  ['cons', ([a, b], ctx) => [evaluate(a, ctx), ...evaluate(b, ctx)]],
+  [
+    'cond',
+    (args, ctx) => {
+      for (const [pred, expr] of args) {
+        const v = evaluate(pred, ctx);
+        if (v && (!Array.isArray(v) || v.length)) return evaluate(expr, ctx);
+      }
+    },
+  ],
+  [
+    'lambda',
+    ([argList, body]) =>
+      (args, ctx) =>
+        evaluate(body, 
+          [...argList.map((arg, i) => [arg, evaluate(args[i], ctx)]), ...ctx]),
+  ],
+  [
+    'defun',
+    ([name, args, body], ctx) => [
+      ...ctx,
+      [name, evaluate(['lambda', args, body], ctx)],
+    ],
+  ],
+  ['label', ([name, func], env) => [...env, [name, evaluate(func, env)]]],
+  ['list', (args, ctx) => args.map((a) => evaluate(a, ctx))],
 
-    console.log([parseQuote(parse(tokenize(input)))]);
-    console.log(execute([parseQuote(parse(tokenize(input)))]));
+  ['+', (args, ctx) => 
+    `${args.reduce((acc, val) => evaluate(acc, ctx) + evaluate(val, ctx))}`],
+  ['-', (args, ctx) => 
+    `${args.reduce((acc, val) => evaluate(acc, ctx) - evaluate(val, ctx))}`],
+  ['/', (args, ctx) => 
+    `${args.reduce((acc, val) => evaluate(acc, ctx) / evaluate(val, ctx))}`],
+  ['*', (args, ctx) => 
+    `${args.reduce((acc, val) => evaluate(acc, ctx) * evaluate(val, ctx))}`],
+  ['%', (args, ctx) => 
+    `${args.reduce((acc, val) => evaluate(acc, ctx) % evaluate(val, ctx))}`],
+  ['^', (args, ctx) => 
+    `${args.reduce((acc, val) => evaluate(acc, ctx) ** evaluate(val, ctx))}`],
 
-//    console.log(evaluate(parseQuote(parse(tokenize(input)))));
-})();
+  //['read', () => parseQuote(parse(tokenize(`'${prompt()}`)))] //TODO: Do I want it this way?
+];
+
+const execute = (exprs) =>
+  exprs.reduce((ctx, line) => evaluate(line, ctx), core);
+
+const main = (() => 
+    console.log(execute(parseQuote(parse(tokenize(prompt('lisp > ')))))))();
+    //console.log(execute(parseQuote(parse(tokenize(fs.readFileSync(process.argv[2], { encoding: "utf8", flag: "r" })))))))();
