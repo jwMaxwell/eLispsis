@@ -5,7 +5,7 @@ console.error = (x) => {console.log('\x1b[1m\x1b[31m' + x + '\x1b[0m'); exit();}
 
 const tokenize = (str) =>
   `( ${str.trim()} )`
-    .replaceAll(/;(.*?)\n/g, "")
+    .replace(/;(.*?)\n/g, "")
     .match(/"(.*?)"|\(|\)|'|[^\s()]+/g)
 
 const parse = (tokens, ast=[]) => {
@@ -25,25 +25,26 @@ const parseQuote = (ast) => {
   const result = [];
   ast.map(n => 
     result[result.length - 1] === "'" 
-      ? result.splice(result.length - 1, 1, ['quote', parseQuote(n)]) 
+      ? result.splice(result.length - 1, 1, ['quote', parseQuote(n)])
+      : n[0] === '"' && n[n.length - 1] === '"'
+      ? result.push(['quote', n.slice(1, -1)])
       : result.push(parseQuote(n))
   );
   return result;
 }
 
-const evaluate = (ast, ctx) => { 
+const evaluate = (ast, ctx=core) => {
   if (isAtom(ast) && !isNaN(parseFloat(ast)))
     return parseFloat(ast);
-  else if (isAtom(ast) && ast[0] === '"' && ast[ast.length - 1] === '"')
-    return ast.slice(1, -1);
+  // else if (isAtom(ast) && ast[0] === '"' && ast[ast.length - 1] === '"')
+  //   return ast.slice(1, -1);
   else if (isAtom(ast)) {
     for (const [key, val] of ctx)
       if (key === ast) return val;
     console.error(`${ast} is not defined`);
   } else {
     const func = evaluate(ast[0], ctx);
-    if (func instanceof Function) return func(ast.slice(1), ctx);
-    return func;//console.error(`Not a function: ${ast[0]}`);
+    return func instanceof Function ? func(ast.slice(1), ctx) : func;
   }
 };
 
@@ -83,8 +84,17 @@ const core = [
   ['set', ([name, func], env) => [...env, [name, evaluate(func, env)]]],
   ['setq', ([name, func], env) => [...env, [name, evaluate(['quote', func], env)]]],
   ['list', (args, ctx) => args.map((a) => evaluate(a, ctx))],
-  ['print', (args, ctx) => console.log(evaluate(args, ctx))],
+  ['print', (args, ctx) => {console.log(evaluate(args, ctx))}],
   ['read', (args, ctx) => `${prompt(evaluate(args, ctx))}`],
+  ['import', (args, ctx) => {
+    const result = [];
+    const temp = parseQuote(
+      parse(tokenize(readFile(`${args}`)))).map(t => evaluate(t, ctx));
+    for (const n of temp)
+      result.push(n[n.length - 1]);
+    return [...ctx, ...result];
+  }],
+  ['meta', (args, ctx) => eval(evaluate(args, ctx))],
   ['+', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) + evaluate(val, ctx))}`],
   ['-', (args, ctx) => 
@@ -97,14 +107,15 @@ const core = [
     `${args.reduce((acc, val) => evaluate(acc, ctx) % evaluate(val, ctx))}`],
   ['^', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) ** evaluate(val, ctx))}`],
-
-  //['read', () => parseQuote(parse(tokenize(`'${prompt()}`)))] //TODO: Do I want it this way?
+  ['\\q', () => exit(0)]
 ];
 
-const execute = (exprs) =>
-  exprs.reduce((ctx, line) => evaluate(line, ctx), core);
+const execute = (input, env=core) =>
+  parseQuote(parse(tokenize(input))).reduce(
+    (ctx, line) => evaluate(line, ctx), env);
+
+const readFile = (file) => fs.readFileSync(file, {encoding: "utf8", flag: "r"})
 
 const main = (() => 
-  execute(parseQuote(parse(tokenize(prompt('lisp > '))))))();
-
-  
+  //console.log(parseQuote(parse(tokenize(readFile(process.argv[2]))))))();
+  execute(readFile(process.argv[2])))();
