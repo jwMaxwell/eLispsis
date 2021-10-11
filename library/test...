@@ -10,4 +10,3 @@
 (set fun (cons (lambda (x) (+ x 1)) '(1)))
 (print (eval fun '()))
 
-
