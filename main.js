@@ -36,8 +36,6 @@ const parseQuote = (ast) => {
 const evaluate = (ast, ctx=core) => {
   if (isAtom(ast) && !isNaN(parseFloat(ast)))
     return parseFloat(ast);
-  // else if (isAtom(ast) && ast[0] === '"' && ast[ast.length - 1] === '"')
-  //   return ast.slice(1, -1);
   else if (isAtom(ast)) {
     for (const [key, val] of ctx)
       if (key === ast) return val;

@@ -37,5 +37,5 @@
 (defun reduce (func acc arr) 
   (cond 
     (arr (reduce func (func acc (car arr)) (cdr arr))) 
-    ('else acc)))
+    ('t acc)))
 
