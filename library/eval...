@@ -74,12 +74,3 @@
   (cond ((null? m) '())
         ('t (cons (eval  (car m) a)
                   (evlis (cdr m) a)))))
-
-(defun repl () 
-  (cons 
-    (print (eval 
-      (meta (+ "parseQuote(parse(tokenize(`" (+ (read "ls > ") "`))).pop()")))
-       '())) 
-    (repl)))
-
-(repl)
