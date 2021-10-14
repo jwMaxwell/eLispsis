@@ -93,6 +93,7 @@ const core = [
     return [...ctx, ...result];
   }],
   ['meta', (args, ctx) => eval(evaluate(args, ctx))],
+  ['...', (args, ctx) => args[0].apply(args.slice(1))],
   ['+', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) + evaluate(val, ctx))}`],
   ['-', (args, ctx) => 
@@ -105,6 +106,24 @@ const core = [
     `${args.reduce((acc, val) => evaluate(acc, ctx) % evaluate(val, ctx))}`],
   ['^', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) ** evaluate(val, ctx))}`],
+  ['>', (args, ctx) => {
+    const x = args.map(t => evaluate(t, ctx));
+    return x.join('') === 
+      [...new Set(x)].sort((a, b) => a - b).reverse().join('') ? 't' : [];
+  }],
+  ['<', (args, ctx) => {
+    const x = args.map(t => evaluate(t, ctx));
+    return x.join('') === 
+      [...new Set(x)].sort((a, b) => a - b).join('') ? 't' : [];
+  }],
+  ['>=', (args, ctx) => {
+    const x = args.map(t => evaluate(t, ctx));
+    return x.join('') === x.sort((a, b) => a - b).reverse().join('') ? 't' : []
+  }],
+  ['<=', (args, ctx) => {
+    const x = args.map(t => evaluate(t, ctx));
+    return x.join('') === x.sort((a, b) => a - b).join('') ? 't' : [];
+  }],
   ['\\q', () => exit(0)]
 ];
 

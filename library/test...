@@ -1,12 +1,5 @@
 (import library/stdlib...)
 (import library/eval...)
 
-(defun pipe (arr val) 
-  (cond ((null? (cdr val)) (arr val))
-    ('t (pipe (cdr arr) (car (arr) val)))))
-
-(set funs ((lambda (x) (+ x 1)) (lambda (x) (+ x 2)) (lambda (x) (* x 2))))
-
-(set fun (cons (lambda (x) (+ x 1)) '(1)))
-(print (eval fun '()))
-
+(print (<= 5 7 9))
+(print (>= 19 19 10 1))

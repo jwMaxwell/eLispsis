@@ -17,6 +17,17 @@
 (defun and (x y)
   (cond (x (cond (y 't) ('t '())))
     ('t '())))
+
+(defun or (x y) 
+  (cond (x 't)
+    (y 't)
+    ('t '())))
+
+(defun xor (x y)
+  (cond ((and x y) '())
+    (x 't)
+    (y 't)
+    ('t '())))
       
 (defun not (x)
   (cond (x '())
