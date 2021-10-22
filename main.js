@@ -4,7 +4,7 @@ const fs = require("fs");
 console.error = (x) => {console.log('\x1b[1m\x1b[31m' + x + '\x1b[0m'); exit();};
 
 const tokenize = (str) =>
-  `( ${str.trim()} )`
+  `( ${str.trim()}\n )`
     .replace(/;(.*?)\n/g, "")
     .match(/"(.*?)"|\(|\)|'|[^\s()]+/g)
 
@@ -34,7 +34,11 @@ const parseQuote = (ast) => {
 }
 
 const evaluate = (ast, ctx=core) => {
-  if (isAtom(ast) && !isNaN(parseFloat(ast)))
+  if (ast === undefined)
+    console.error('Invalid parameter list');
+  if (ctx === undefined)
+    console.error('Lost Context');
+  else if (isAtom(ast) && !isNaN(parseFloat(ast)))
     return parseFloat(ast);
   else if (isAtom(ast)) {
     for (const [key, val] of ctx)
@@ -85,15 +89,19 @@ const core = [
   ['print', (args, ctx) => {console.log(evaluate(args, ctx))}],
   ['read', (args, ctx) => `${prompt(evaluate(args, ctx))}`],
   ['import', (args, ctx) => {
-    const result = [];
+    try {
+      const result = [];
     const temp = parseQuote(
       parse(tokenize(readFile(`${args}`)))).map(t => evaluate(t, ctx));
     for (const n of temp)
       result.push(n[n.length - 1]);
     return [...ctx, ...result];
+    } catch (error) {
+      console.error(`File or directory "${args}" not found`)
+    }
   }],
   ['meta', (args, ctx) => eval(evaluate(args, ctx))],
-  ['...', (args, ctx) => args[0].apply(args.slice(1))],
+  //['...', (args, ctx) => args[0].apply(args.slice(1))],
   ['+', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) + evaluate(val, ctx))}`],
   ['-', (args, ctx) => 

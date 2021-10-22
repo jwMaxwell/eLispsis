@@ -10,9 +10,9 @@
       
 (defun pair (x y)
   (cond ((and (null? x) (null? y)) '())
-        ((and (not (atom x)) (not (atom y)))
-          (cons (list (car x) (car y))
-                (pair (cdr x) (cdr y))))))
+    ((and (not (atom x)) (not (atom y)))
+      (cons (list (car x) (car y))
+            (pair (cdr x) (cdr y))))))
   
 (defun and (x y)
   (cond (x (cond (y 't) ('t '())))
@@ -49,4 +49,3 @@
   (cond 
     (arr (reduce func (func acc (car arr)) (cdr arr))) 
     ('t acc)))
-
