@@ -1,6 +1,6 @@
 ;; Code courtesy of Andrew Maxwell
 
-(import library/stdlib...)
+(import library/stdlib.el)
 (defun getProp (name obj)
   (cond
     (obj (cond
