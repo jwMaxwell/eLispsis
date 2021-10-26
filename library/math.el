@@ -3,10 +3,3 @@
 (defun factorial (x)
   (cond ((eq x '1) '1)
     ('t (* x (factorial (- x 1))))))
-
-(defun sqrt (x)
-  (meta (+ "Math.sqrt(" (+ x ")"))))
-
-(defun log (x)
-  (cond ((< x 1) '0)
-    ('t (+ '1 (log (/ x 2))))))
