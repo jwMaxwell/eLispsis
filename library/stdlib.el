@@ -45,6 +45,15 @@
   (cond ((eq index '0) (car arr))
     ('t (get (- index 1) (cdr arr)))))
 
+(defun includes? (x arr) 
+  (cond ((null? arr) '())
+    ((eq (car arr) x) 't)
+    ('t (includes? x (cdr arr)))))
+
+(defun if (pred then else)
+  (cond (pred then)
+    ('t else)))
+
 (defun reduce (func acc arr) 
   (cond 
     (arr (reduce func (func acc (car arr)) (cdr arr))) 
