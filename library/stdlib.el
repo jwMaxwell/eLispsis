@@ -41,6 +41,12 @@
   (cond ((null? arr) (arr))
     ('t (append (reverse (cdr arr)) (car arr)))))
 
+(defun pop (arr)
+  (reverse (cdr (reverse arr))))
+
+(defun peek (arr)
+  (car (reverse arr)))
+
 (defun get (index arr) 
   (cond ((eq index '0) (car arr))
     ('t (get (- index 1) (cdr arr)))))
@@ -55,6 +61,5 @@
     ('t else)))
 
 (defun reduce (func acc arr) 
-  (cond 
-    (arr (reduce func (func acc (car arr)) (cdr arr))) 
+  (cond (arr (reduce func (func acc (car arr)) (cdr arr))) 
     ('t acc)))

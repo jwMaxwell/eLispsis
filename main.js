@@ -20,15 +20,15 @@ const parse = (tokens, ast=[]) => {
 }
 
 const isAtom = (expr) => !Array.isArray(expr) || !expr.length;
-const parseQuote = (ast) => {
+const postParse = (ast) => {
   if (isAtom(ast)) return ast;
   const result = [];
   ast.map(n => 
     result[result.length - 1] === "'" 
-      ? result.splice(result.length - 1, 1, ['quote', parseQuote(n)])
+      ? result.splice(result.length - 1, 1, ['quote', postParse(n)])
       : n[0] === '"' && n[n.length - 1] === '"'
       ? result.push(['quote', n.slice(1, -1)])
-      : result.push(parseQuote(n))
+      : result.push(postParse(n))
   );
   return result;
 }
@@ -91,7 +91,7 @@ const core = [
   ['import', (args, ctx) => {
     try {
       const result = [];
-    const temp = parseQuote(
+    const temp = postParse(
       parse(tokenize(readFile(`${args}`)))).map(t => evaluate(t, ctx));
     for (const n of temp)
       result.push(n[n.length - 1]);
@@ -101,8 +101,10 @@ const core = [
     }
   }],
   ['meta', (args, ctx) => eval(evaluate(args, ctx))],
-  //['...', (args, ctx) => args[0].apply(args.slice(1))],
+  ['...', (args, ctx) => evaluate(postParse(parse(args)), ctx)],
   ['+', (args, ctx) => 
+    `${args.reduce((acc, val) => parseFloat(evaluate(acc, ctx)) + parseFloat(evaluate(val, ctx)))}`],
+  ['&', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) + evaluate(val, ctx))}`],
   ['-', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) - evaluate(val, ctx))}`],
@@ -136,11 +138,11 @@ const core = [
 ];
 
 const execute = (input, env=core) =>
-  parseQuote(parse(tokenize(input))).reduce(
+  postParse(parse(tokenize(input))).reduce(
     (ctx, line) => evaluate(line, ctx), env);
 
 const readFile = (file) => fs.readFileSync(file, {encoding: "utf8", flag: "r"})
 
 const main = (() => 
-  //console.log(parseQuote(parse(tokenize(readFile(process.argv[2]))))))();
+  //console.log(postParse(parse(tokenize(readFile(process.argv[2]))))))();
   execute(readFile(process.argv[2])))();
