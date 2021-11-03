@@ -109,15 +109,15 @@ const core = [
   ['&', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) + evaluate(val, ctx))}`],
   ['-', (args, ctx) => 
-    `${args.reduce((acc, val) => parseFloat(evaluate(acc, ctx)) - parseFloat(evaluate(val, ctx)))}`],
+    `${args.reduce((acc, val) => evaluate(acc, ctx) - evaluate(val, ctx))}`],
   ['/', (args, ctx) => 
-    `${args.reduce((acc, val) => parseFloat(evaluate(acc, ctx)) / parseFloat(evaluate(val, ctx)))}`],
+    `${args.reduce((acc, val) => evaluate(acc, ctx) / evaluate(val, ctx))}`],
   ['*', (args, ctx) => 
-    `${args.reduce((acc, val) => parseFloat(evaluate(acc, ctx)) * parseFloat(evaluate(val, ctx)))}`],
+    `${args.reduce((acc, val) => evaluate(acc, ctx) * evaluate(val, ctx))}`],
   ['%', (args, ctx) => 
-    `${args.reduce((acc, val) => parseFloat(evaluate(acc, ctx)) % parseFloat(evaluate(val, ctx)))}`],
+    `${args.reduce((acc, val) => evaluate(acc, ctx) % evaluate(val, ctx))}`],
   ['^', (args, ctx) => 
-    `${args.reduce((acc, val) => parseFloat(evaluate(acc, ctx)) ** parseFloat(evaluate(val, ctx)))}`],
+    `${args.reduce((acc, val) => evaluate(acc, ctx) ** evaluate(val, ctx))}`],
   ['>', (args, ctx) => {
     const x = args.map(t => evaluate(t, ctx));
     return x.join('') === 
