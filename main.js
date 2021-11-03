@@ -16,6 +16,8 @@ const parse = (tokens, ast=[]) => {
     ? (ast.push(parse(tokens, [])), parse(tokens, ast))
     : t === ')'
     ? ast
+    : !isNaN(parseFloat(t))
+    ? parse (tokens, [...ast, parseFloat(t)])
     : parse(tokens, [...ast, t]);
 }
 
@@ -101,9 +103,9 @@ const core = [
     }
   }],
   ['meta', (args, ctx) => eval(evaluate(args, ctx))],
-  ['...', (args, ctx) => evaluate(postParse(parse(args)), ctx)],
+  ['...', (args, ctx) => args.reduce((env, line) => evaluate(line, env), ctx)],
   ['+', (args, ctx) => 
-    `${args.reduce((acc, val) => parseFloat(evaluate(acc, ctx)) + parseFloat(evaluate(val, ctx)))}`],
+    `${args.reduce((acc, val) => evaluate(acc, ctx) + evaluate(val, ctx))}`],
   ['&', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) + evaluate(val, ctx))}`],
   ['-', (args, ctx) => 
