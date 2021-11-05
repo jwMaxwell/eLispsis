@@ -85,8 +85,8 @@ const core = [
       ...ctx, [name, evaluate(['lambda', args, body], ctx)],
     ],
   ],
-  ['set', ([name, func], env) => [...env, [name, evaluate(func, env)]]],
-  ['setq', ([name, func], env) => [...env, [name, evaluate(['quote', func], env)]]],
+  ['set', ([name, val], env) => [...env, [name, evaluate(val, env)]]],
+  ['setq', ([name, val], env) => [...env, [name, evaluate(['quote', val], env)]]],
   ['list', (args, ctx) => args.map((a) => evaluate(a, ctx))],
   ['print', (args, ctx) => {console.log(evaluate(args, ctx))}],
   ['read', (args, ctx) => `${prompt(evaluate(args, ctx))}`],
@@ -147,4 +147,7 @@ const readFile = (file) => fs.readFileSync(file, {encoding: "utf8", flag: "r"})
 
 const main = (() => 
   //console.log(postParse(parse(tokenize(readFile(process.argv[2]))))))();
-  execute(readFile(process.argv[2])))();
+  execute(readFile(process.argv[2])));
+//main();
+
+  module.exports = { execute }

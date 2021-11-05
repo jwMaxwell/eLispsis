@@ -63,3 +63,7 @@
 (defun reduce (func acc arr) 
   (cond (arr (reduce func (func acc (car arr)) (cdr arr))) 
     ('t acc)))
+
+(defun map (func arr)
+  (cond ((null? arr) '())
+    ('t (cons (func (car arr)) (map func (cdr arr))))))
