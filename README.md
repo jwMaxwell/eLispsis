@@ -19,4 +19,4 @@ Hello, world!
 ```
 
 Now that you got everything working, you can begin writing your very own programs! Reference material can be found
-in the project wiki, including a basic tutorial, code examples, and every function you need.
+in the project (wiki)[https://github.com/jwMaxwell/eLispsis/wiki/Code-Reference], including a basic tutorial, code examples, and every function you need.
