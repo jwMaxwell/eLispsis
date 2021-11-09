@@ -1,56 +1,8 @@
 const { exit } = require("process");
 const prompt = require("prompt-sync")();
 const fs = require("fs");
+const { parse, evaluate, isAtom } = require("./evaluate.js");
 console.error = (x) => {console.log('\x1b[1m\x1b[31m' + x + '\x1b[0m'); exit();};
-
-const tokenize = (str) =>
-  `( ${str.trim()}\n )`
-    .replace(/;(.*?)\n/g, "")
-    .match(/"(.*?)"|\(|\)|'|[^\s()]+/g)
-
-const parse = (tokens, ast=[]) => {
-  const t = tokens.shift();
-  return t === undefined
-    ? ast.pop()
-    : t === '('
-    ? (ast.push(parse(tokens, [])), parse(tokens, ast))
-    : t === ')'
-    ? ast
-    : !isNaN(parseFloat(t))
-    ? parse (tokens, [...ast, parseFloat(t)])
-    : parse(tokens, [...ast, t]);
-}
-
-const isAtom = (expr) => !Array.isArray(expr) || !expr.length;
-const postParse = (ast) => {
-  if (isAtom(ast)) return ast;
-  const result = [];
-  ast.map(n => 
-    result[result.length - 1] === "'" 
-      ? result.splice(result.length - 1, 1, ['quote', postParse(n)])
-      : n[0] === '"' && n[n.length - 1] === '"'
-      ? result.push(['quote', n.slice(1, -1)])
-      : result.push(postParse(n))
-  );
-  return result;
-}
-
-const evaluate = (ast, ctx=core) => {
-  if (ast === undefined)
-    console.error('Invalid parameter list');
-  if (ctx === undefined)
-    console.error('Lost Context');
-  else if (isAtom(ast) && !isNaN(parseFloat(ast)))
-    return parseFloat(ast);
-  else if (isAtom(ast)) {
-    for (const [key, val] of ctx)
-      if (key === ast) return val;
-    console.error(`${ast} is not defined`);
-  } else {
-    const func = evaluate(ast[0], ctx);
-    return func instanceof Function ? func(ast.slice(1), ctx) : func;
-  }
-};
 
 const core = [
   ['quote', ([a]) => a],
@@ -93,11 +45,9 @@ const core = [
   ['import', (args, ctx) => {
     try {
       const result = [];
-    const temp = postParse(
-      parse(tokenize(readFile(`${args}`)))).map(t => evaluate(t, ctx));
-    for (const n of temp)
-      result.push(n[n.length - 1]);
-    return [...ctx, ...result];
+      const temp = parse(readFile(`${args}`)).map(t => evaluate(t, ctx));
+      for (const n of temp) result.push(n[n.length - 1]);
+      return [...ctx, ...result];
     } catch (error) {
       console.error(`File or directory "${args}" not found`)
     }
@@ -105,8 +55,6 @@ const core = [
   ['meta', (args, ctx) => eval(evaluate(args, ctx))],
   ['...', (args, ctx) => args.reduce((env, line) => evaluate(line, env), ctx)],
   ['+', (args, ctx) => 
-    `${args.reduce((acc, val) => evaluate(acc, ctx) + evaluate(val, ctx))}`],
-  ['&', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) + evaluate(val, ctx))}`],
   ['-', (args, ctx) => 
     `${args.reduce((acc, val) => evaluate(acc, ctx) - evaluate(val, ctx))}`],
@@ -135,19 +83,15 @@ const core = [
   ['<=', (args, ctx) => {
     const x = args.map(t => evaluate(t, ctx));
     return x.join('') === x.sort((a, b) => a - b).join('') ? 't' : [];
-  }],
-  ['\\q', () => exit(0)]
+  }]
 ];
 
 const execute = (input, env=core) =>
-  postParse(parse(tokenize(input))).reduce(
+  parse(input).reduce(
     (ctx, line) => evaluate(line, ctx), env);
 
-const readFile = (file) => fs.readFileSync(file, {encoding: "utf8", flag: "r"})
+const readFile = (f) => fs.readFileSync(f, {encoding: "utf8", flag: "r"});
+const main = (() => execute(readFile(process.argv[2])));
+// main();
 
-const main = (() => 
-  //console.log(postParse(parse(tokenize(readFile(process.argv[2]))))))();
-  execute(readFile(process.argv[2])));
-//main();
-
-  module.exports = { execute }
+  module.exports = { execute } // for testing
