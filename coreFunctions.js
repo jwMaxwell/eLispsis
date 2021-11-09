@@ -1,7 +1,10 @@
 const { parse, evaluate, isAtom } = require('./evaluate');
 const fs = require("fs");
 const prompt = require("prompt-sync")();
-
+console.error = (x) => {
+  console.log('\x1b[1m\x1b[31m' + x + '\x1b[0m'); 
+  exit();
+};
 const readFile = (f) => fs.readFileSync(f, {encoding: "utf8", flag: "r"});
 
 const core = [
