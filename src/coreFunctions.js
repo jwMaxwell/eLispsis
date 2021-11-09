@@ -1,4 +1,5 @@
 const { parse, evaluate, isAtom } = require('./evaluate');
+const { exit } = require("process");
 const fs = require("fs");
 const prompt = require("prompt-sync")();
 console.error = (x) => {
