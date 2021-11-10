@@ -18,20 +18,20 @@ const preparse = (tokens, ast=[]) => {
     : t === ')'
     ? ast
     : !isNaN(parseFloat(t))
-    ? preparse (tokens, [...ast, parseFloat(t)])
+    ? preparse(tokens, [...ast, parseFloat(t)])
     : preparse(tokens, [...ast, t]);
 }
 
 const isAtom = (expr) => !Array.isArray(expr) || !expr.length;
-const postParse = (ast) => {
+const postparse = (ast) => {
   if (isAtom(ast)) return ast;
   const result = [];
   ast.map(n => 
     result[result.length - 1] === "'" 
-      ? result.splice(result.length - 1, 1, ['quote', postParse(n)])
+      ? result.splice(result.length - 1, 1, ['quote', postparse(n)])
       : n[0] === '"' && n[n.length - 1] === '"'
       ? result.push(['quote', n.slice(1, -1)])
-      : result.push(postParse(n))
+      : result.push(postparse(n))
   );
   return result;
 }
@@ -44,8 +44,14 @@ const evaluate = (ast, ctx) => {
   else if (isAtom(ast) && !isNaN(parseFloat(ast)))
     return parseFloat(ast);
   else if (isAtom(ast)) {
-    for (const [key, val] of ctx)
-      if (key === ast) return val;
+    try {
+      for (const [key, val] of ctx) {
+        if (key === ast) return val;
+      }
+    } catch (error) {
+      console.error('Unbalanced Parens');
+    }
+  
     console.error(`${ast} is not defined`);
   } else {
     const func = evaluate(ast[0], ctx);
@@ -53,6 +59,6 @@ const evaluate = (ast, ctx) => {
   }
 };
 
-const parse = (str) => postParse(preparse(tokenize(str)));
+const parse = (str) => postparse(preparse(tokenize(str)));
 
 module.exports = { parse, evaluate, isAtom };

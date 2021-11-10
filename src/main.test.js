@@ -22,6 +22,7 @@ const tests = [
     ('t (append (reverse (cdr arr)) (car arr)))))
     
   (reverse '(a b c d e))`, ["e", "d", "c", "b", "a"]],
+  [`(cdr (cons 'y (cons '(a b v c x) 'b)))`, [ [ 'a', 'b', 'v', 'c', 'x' ], 'b' ]]
 ]
 
 for (const n of tests) {
