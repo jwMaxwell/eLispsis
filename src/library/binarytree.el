@@ -32,5 +32,3 @@
         ('t (list (list 'value value)))))
 
 (defun buildTree (arr) (reduce addNode '() arr))
-
-(buildTree '(10 9 2 5 4 6 7 8))
