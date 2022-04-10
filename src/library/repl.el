@@ -78,7 +78,7 @@
 (defun repl () 
   (cons 
     (print (eval 
-      (meta (+ "parseQuote(parse(tokenize(`" (+ (read "eLispsis... ") "`))).pop()")))
+      (meta (+ "parse(`" (+ (read "eLispsis... ") "`).pop()")))
        '())) 
     (repl)))
 
