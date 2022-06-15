@@ -1,0 +1,6 @@
+{
+  "readFile": "(args, env, stack) => fs.readFileSync(evaluate(args[0], env, stack), evaluate(args[1], env, stack)).toString()",
+  "writeFile": "(args, env, stack) => fs.writeFileSync(evaluate(args[0], env, stack), evaluate(args[1], env, stack)) ?? env",
+  "print": "([a], env, stack) => console.log(evaluate(a, env, stack)) ?? env",
+  "read": "([a], env, stack) => `${prompt(evaluate(a, env, stack))}`"
+}

@@ -1,0 +1,12 @@
+{
+  "pi": "3.141592653589793",
+  "e": "2.718281828459045",
+  "rand": "Math.random()",
+  "floor": "([a], env, stack) => Math.floor(evaluate(a, env, stack))",
+  "ceil": "([a], env, stack) => Math.ceil(evaluate(a, env, stack))",
+  "parseNum": "([a], env, stack) => Number(evaluate(a, env, stack))",
+  "cos": "([a], env, stack) => Math.cos(evaluate(a, env, stack))",
+  "sin": "([a], env, stack) => Math.sin(evaluate(a, env, stack))",
+  "tan": "([a], env, stack) => Math.tan(evaluate(a, env, stack))",
+  "log": "([a], env, stack) => Math.log(evaluate(a, env, stack))"
+}

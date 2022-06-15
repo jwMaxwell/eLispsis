@@ -34,7 +34,7 @@
     ('t 't)))
 
 (defun last (arr) 
-  (cond ((null? (cdr arr)) (arr))
+  (cond ((null? (cdr arr)) arr)
     ('t (last (cdr arr)))))
 
 (defun reverse (arr) 
