@@ -125,12 +125,32 @@ const defaultEnv = Object.entries({
   "...": (a, env, stack) => {
     a.reduce((ctx, t) => evaluate(t, ctx, stack), env);
   },
-  import: ([a], env, stack) => [
-    ...env,
-    ...parse(fs.readFileSync(evaluate(a, env, stack), "utf-8"))
-      .map((t) => evaluate(t, env, stack))
-      .map((t) => t[0]),
-  ],
+  import: (args, env, stack) => {
+    const fname = evaluate(args[0], env, stack);
+    const importAll = (fn, env, stack) => [
+      ...env,
+      ...fn(fs.readFileSync(fname, "utf-8"))
+        .map((t) => evaluate(t, env, stack))
+        .map((t) => t[0]),
+    ];
+    const importSome = (fn, args, env, stack) => [
+      ...env,
+      ...fn(fs.readFileSync(fname, "utf-8"))
+        .map((t) => evaluate(t, env, stack))
+        .filter((t) => args.slice(1).includes(t[0][0]))
+        .map((t) => t[0]),
+    ];
+    if (evaluate(args[1], env, stack) === "*")
+      return fname.slice(fname.lastIndexOf("."), fname.length) === ".json"
+        ? importAll(JSON.parse, env, stack)
+        : importAll(parse, env, stack);
+    else {
+      const argList = args.map((t) => evaluate(t, env, stack));
+      return fname.slice(fname.lastIndexOf("."), fname.length) === ".json"
+        ? importSome(JSON.parse, argList, env, stack)
+        : importSome(parse, argList, env, stack);
+    }
+  },
   library: ([a], env, stack) => {
     const fname = evaluate(a, env, stack);
     const dat = JSON.parse(fs.readFileSync(fname, "utf-8"));
@@ -146,6 +166,11 @@ const defaultEnv = Object.entries({
     }
     return [...env, ...res];
   },
+  eval: ([a], env, stack) =>
+    parse(evaluate(a, env, stack)).reduce(
+      (ctx, t) => evaluate(t, ctx, stack),
+      env
+    ),
 });
 
 const execute = (exprs, ctx = defaultEnv) =>

@@ -1,0 +1,5 @@
+{
+  "spill-env": "(args, env, stack) => console.log(env) ?? env",
+  "spill-stack": "(args, env, stack) => console.log(stack) ?? env",
+  "exit": "() => require('process').exit()"
+}
