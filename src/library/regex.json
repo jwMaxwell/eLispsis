@@ -1,0 +1,6 @@
+{
+  "match": "([a, b, c], env, stack) => evaluate(a, env, stack).match(new RegExp(evaluate(b, env, stack), evaluate(c, env, stack)))",
+  "split": "([a, b, c], env, stack) => evaluate(a, env, stack).split(new RegExp(evaluate(b, env, stack), evaluate(c, env, stack)))",
+  "replace": "([a, b, c, d], env, stack) => evaluate(a, env, stack).replace(new RegExp(evaluate(b, env, stack), evaluate(c, env, stack)), evaluate(d, env, stack))",
+  "search": "([a, b, c], env, stack) => evaluate(a, env, stack).search(new RegExp(evaluate(b, env, stack), evaluate(c, env, stack)))"
+}

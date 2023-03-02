@@ -1,9 +1,5 @@
 (defun null? (x) (eq x '()))
 
-(defun assoc (x y)
-  (cond ((eq (caar y) x) (cadar y))
-        ('t (assoc x (cdr y)))))
-
 (defun append (x y)
   (cond ((null? x) y)
     ('t (cons (car x) (append (cdr x) y)))))
@@ -37,9 +33,38 @@
   (cond ((null? (cdr arr)) arr)
     ('t (last (cdr arr)))))
 
-(defun reverse (arr) 
-  (cond ((null? arr) '())
-    ('t (append (reverse (cdr arr)) (car arr)))))
+;; Helper function
+(defun _reverse (lst acc)
+  (cond 
+    ((null? lst) acc)
+    ('t (_reverse (cdr lst) (cons (car lst) acc)))))
+
+(defun reverse (lst)
+  (_reverse lst '()))
+
+(defun _length (lst acc)
+ (cond 
+  ((null? lst) acc)
+  ('t (_length (cdr lst) (+ 1 acc)))))
+
+(defun length (lst)
+  (_length lst '0))
+
+(defun foldr (func acc arr) 
+  (cond 
+    (arr (foldr func (func acc (car arr)) (cdr arr))) 
+    ('t acc)))
+
+(defun foldl (func acc arr) 
+  (foldr func acc (reverse arr)))
+
+(defun all (fn lst)
+  (foldr 
+    (lambda (acc x)
+      (cond 
+        ((and (fn x) (eq acc 't)) 't)
+        ('t '())))
+    't lst))
 
 (defun pop (arr)
   (reverse (cdr (reverse arr))))

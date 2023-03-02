@@ -50,7 +50,6 @@ const evaluate = (expr, env, stack = []) => {
     }
     throw new Error(`\`${val}\` is not defined at ${loc}${printStack(stack)}`);
   }
-
   throw new Error(JSON.stringify(expr) + printStack(stack));
 };
 
@@ -98,7 +97,7 @@ const defaultEnv = Object.entries({
       env
     ),
   list: (args, env, stack) => args.map((a) => evaluate(a, env, stack)),
-  numToChar: ([a], env, stack) => String.fromCharCode(evaluate(a, env, stack)),
+  ascii: ([a], env, stack) => String.fromCharCode(evaluate(a, env, stack)),
   defmacro: ([{ val, loc }, [argName], body], env, stack) =>
     cons(
       [

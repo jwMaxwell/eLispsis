@@ -1,5 +1,3 @@
-const tokenRegex = /\(|\)|"[^"]*"|'|[^\s()]+/g;
-
 const getAllMatches = (regex, str) => {
   const result = [];
   let match;
@@ -12,15 +10,14 @@ const tokenize = (str) =>
     .replace(/;(.*?)\n/g, "")
     .split("\n")
     .flatMap((line, lineNum) =>
-      getAllMatches(tokenRegex, line).map((m) => ({
+      getAllMatches(/\(|\)|"[^"]*"|'|[^\s()]+/g, line).map((m) => ({
         val: m[0],
         loc: lineNum + ":" + m.index,
       }))
     );
 
 const preparse = (tokens) => {
-  const indecies = [];
-  const res = [];
+  const [indecies, res] = [[], []];
   tokens.map(({ val, loc }) => {
     if (val === "(") indecies.push(res.length);
     else if (val === ")") {
