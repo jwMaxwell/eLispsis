@@ -42,13 +42,10 @@
 (defun reverse (lst)
   (_reverse lst '()))
 
-(defun _length (lst acc)
- (cond 
-  ((null? lst) acc)
-  ('t (_length (cdr lst) (+ 1 acc)))))
-
-(defun length (lst)
-  (_length lst '0))
+(defun length (arr)
+  (cond
+    (arr (+ 1 (length (cdr arr))))
+    ('t 0)))
 
 (defun foldr (func acc arr) 
   (cond 
@@ -65,6 +62,33 @@
         ((and (fn x) (eq acc 't)) 't)
         ('t '())))
     't lst))
+
+(defun any (fn lst)
+  (foldr 
+    (lambda (acc x)
+      (cond 
+        ((or (fn x) (eq acc 't)) 't)
+        ('t '())))
+    '() lst))
+
+(defun take (n arr)
+  (cond
+    (n (cons (car arr) (take (- n 1) (cdr arr))))
+    ('t '())))
+
+(defun aperture (n arr) 
+  (cond
+    ((<= (length arr) n) (list arr))
+    ('t (cons (take n arr) (aperture n (cdr arr))))
+  )
+)
+
+(defun adjust (index func arr)
+  (cond
+    (index (cons (car arr) (adjust (- index 1) func (cdr arr))))
+    ('t (cons (func (car arr)) (cdr arr)))
+  )
+)
 
 (defun pop (arr)
   (reverse (cdr (reverse arr))))

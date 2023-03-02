@@ -1,16 +1,13 @@
 (library './src/library/io.json)
 (library './src/library/process.json)
-(library './src/library/math.json)
-(library './src/library/regex.json)
-(import "./src/library/stdlib.el" '*)
+;; (import "./src/library/stdlib.el" '*)
 
-(defun all (fn lst)
-  (foldr 
-    (lambda (acc x)
-      (cond 
-        ((and (fn x) (eq acc 't)) 't)
-        ('t '())))
-    't lst))
+(defun length (arr)
+  (cond
+    (arr (+ 1 (length (cdr arr))))
+    ('t 0)))
 
-(io::print 
-  (all (lambda (x) (eq (% x 2) 0)) '(2 4 6 8 10 12)))
+(io::print (length '(1 2 3 4 5 6)))
+
+;; (io::print 
+;;   (any (lambda (x) (eq (% x 2) 0)) '(1 3 5 7 9 11)))
